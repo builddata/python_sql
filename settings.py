@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-settings
+settings——
 
 """
 # settings.py
