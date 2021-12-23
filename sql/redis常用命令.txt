@@ -1,0 +1,187 @@
+Redis数据库首先是一个数据库，其次它是一个内存数据库，基本所有数据都保存在内存中，所以读写速度非常快，会定时以追加或快照的方式刷新到磁盘中。
+Redis操作：想让其它机器访问本机的redis服务器，需要修改redis.conf的ip地址为本机的网卡ip，如果有多个网卡，可以绑定多个ip。
+安装：
+.\redis-server.exe redis.windows.conf 
+.\redis-cli.exe -h 127.0.0.1 -p 6379
+set myKey abc
+get myKey
+
+1.启动redis
+sudo service redis-server start
+
+2.客户端进行连接
+redis-cli -h ip地址 port端口号
+
+3.连接之后输入ping命令，如果出现PONG说明连接成功
+
+4.redis默认有16个库，通过0-15进行标识，切换数据库：select 1 切换到1号库
+
+5.清除当前数据库flushdb
+清除所有数据库flushall
+
+redis中支持的5种数据类型:字符串string,列表list,集合set,有序集合zset,哈希hash
+redis是key-value的数据结构，每一条数据都是一个键值对，键名的类型为字符串，但键名不能重复。
+redis中对string字符串的基本操作:
+
+设置/保存数据
+1)设置键值
+如设置键为username 值为laowang的数据
+set username laowang
+
+2)查看username的值
+get username
+
+3)设置键值过期时间，以秒为单位 setex key seconds value
+如设置键为age，值为18，过期时间为3秒的数据
+setex age 3 18
+
+4)设置多个键值
+如设置username为zhangsan，age为20 gender为male的数据
+mset username zhangsan age 20 gender male
+
+5)追加值append key value
+如向键名为username的值zhangsan添加abc 使之变为zhangsanabc
+append username abc
+
+获取数据
+1)根据键获取值，如果键不存在则返回nil
+如：获取username的值
+get username
+
+2)根据多个键获取多个值 mget key1 key2 ...
+mget username age gender
+
+键命令
+1)查看所有键 keys *
+
+2)查看键名中包含a的键
+keys 'a*'
+
+3)判断键是否存在，如果存在返回1，不存在返回0 exists key
+exists username
+
+4)查看键对应的值的类型 type key
+type age 
+
+5)删除键对应的值 del key(删除键后，键对应的值也会被删除)
+del username
+
+6)设置键的过期时间 expire key seconds
+expire age 3 设置age有效时间为3秒
+
+7)查看键的有效时间 ttl key
+
+
+hash类型:用于存储对象，值的类型为string
+
+增加/修改
+1)设置单个属性 hset key field value
+如设置键user的属性name为laowang
+hset user name laowang
+
+2)设置多个属性 hmset key field1 value1 field2 value2
+如设置键user2的属性name为xiaohua，属性age为11
+hmset user2 name xiaohua age 11 
+
+获取
+1)获取指定键的属性hkeys key
+如获取键user2的所有属性
+hkeys user2
+
+2)获取一个属性的值 hget key field
+如获取键user2属性name的值
+hget user2 name
+
+3)获取多个属性的值 hmset key field1 field2 
+如获取键user2属性name，age的值
+hmget user2 name age 
+
+4)获取所有属性的值 hvals key
+如获取键user2所有属性的值
+hvals user2
+
+删除
+1)删除属性，属性对应的值也会被删除
+hdel user2 age 
+
+list类型：列表的元素类型为string,列表按照插入顺序排序
+增加
+
+1)在左侧插入数据 lpush key value1 value2
+如从键为a1的列表左侧加入数据1，2，3(会自动创建a1列表)
+lpush a1 1 2 3
+
+2)在右侧插入数据
+rpush key value1 value2...
+从键为a1的列表右侧加入数据a,b
+rpush a1 a b
+
+3)在指定元素的前面或后面插入新元素 linsert key before/after old_data new_data
+在键为a1的列表中元素b之前加入元素5 
+linsert a1 before b 5
+
+获取
+1)返回列表中指定范围内的元素(start,stop为元素的下标索引，索引从左侧开始，第一个元素为0，下标-1表示最后一个元素)
+lrange key start stop
+如获取键为a1的列表所有元素
+lrange a1 0 -1
+
+2)设置指定索引位置的元素值 lset key index value
+如修改a1列表中下标为1的元素值为z  
+lset a1 1 z
+
+删除
+删除指定元素(将列表中前count次出现的值为value的元素移除)：lrem key count value 
+count>0 从头到尾移除
+count<0 从尾往头移除
+count=0 移除所有
+1)先添加数据，然后进行删除操作
+lpush a1 a b c a b a b  从列表左边添加数据a1 a b c a b a b
+
+从a1列表右侧开始删除2个b
+lrem a1 -2 b
+
+set类型：(无序集合，元素为string类型，且具有唯一性，不重复)
+注意：对于集合没有修改操作
+增加
+1)添加元素 sadd key member1 member2 
+如向键a3的集合中添加元素zhangsan,lisi,wangwu
+sadd a3 zhangsan lisi wangwu
+
+获取
+1)返回所有的元素 smembers key
+如获取键a3的集合中所有元素
+smembers a3
+
+删除
+1)删除指定元素 srem key
+如删除键a3的集合中元素wangwu
+srem a3 wangwu
+
+zset类型：
+有序集合，元素为string类型，元素具有唯一性，不重复，每个元素都会关联一个double类型的score，表示权重，通过权重将元素从小到大进行排序
+没有修改操作
+增加
+1)zadd key score1 member1 score2 member2
+如：向键a4的集合中添加元素zhangsan，lisi，wangwu，zhaoliu权重分别为4，5，6,3
+zadd a4 4 zhangsan 5 lisi 6 wangwu 3 zhaoliu
+
+获取(返回指定范围内的元素,索引从左侧开始，第一个元素为0，也可以为负数，从尾部开始计数，-1表示是最后一个元素)
+1)zrange key start stop
+如：获取键a4的集合中所有的元素
+zrange a4 0 -1
+
+2)返回socre值在min和max之间的成员
+zrangebyscore a4 5 6
+
+3)返回成员member的score的值 zscore key member
+如：获取键a4的集合中元素zhangsan的权重
+zscore a4 zhangsan
+
+4)删除指定元素 zrem key member1 member2
+如删除集合a4中元素zhangsan
+zrem a4 zhangsan
+
+5)删除集合a4中权限在5，6之间的元素
+zremrangeby score a4 5 6
+————————————————

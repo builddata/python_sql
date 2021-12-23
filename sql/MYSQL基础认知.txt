@@ -1,0 +1,468 @@
+
+mysql查询时都会有开表以及关表操作，太多表可能导致操作变慢。一般限制在100个表以内吧。
+
+show tables;
+desc drink_info;
+select * from profession;
+insert into profession(id,mc_prof) values('3','techaer');
+update profession set mc_prof='Pck'  where id='1'
+delete from profession where id=
+\s
+? create table
+\c
+CREATE TABLE IF NOT EXISTS
+TINYINT  1字节 （-128~127） SMALLINT 2字节（-32768~32767） MEDIUMINT 3字节（-82388608~82388607）- INT 4字节（-2147483648~2147483648） BIGINT 8字节 （2的64次方）
+CREATE TABLE tab(id TINYINT);
+CREATE TABLE tab(id TINYINT UNSIGNED);
+
+float(M,D)      4字节
+double（M,D）   8字节
+decimal（M,D）  M+2字节  比较精确，运行速度稍慢
+一共M位，小数点保留D位  
+浮点数不能用=号去比较，要比较用范围
+
+char处理速度比varchar速度快，处理长度变化不大的比如，性别啊之类用char，缺点是浪费存储空间
+varchar不断被更新，越来越被使用,可以有默认值，
+varchar(N),utf8时，最大3*N+（1 or 2）bytes。varchar(N)可能超过255字节时，字段长度=2.比如varchar(100),字符集为utf8时，“aaa”占用几个字节？因为utf8下一个汉字3个字节，英文1个字节
+所以3*100>255,所以答案为5个字节
+explain select * from t6 where a="aaa"  ----key_len=302
+text 文本数据  --文章，日记----没有默认值
+存储字符串推荐选择使用varchar（N），N尽量小！一些操作，如排序，表DDL时，varchar（100）会利用更多的磁盘及内存空间，效率会更低
+
+
+blob 二进制数据--照片，电影，压缩包
+ENUM 枚举 1或2个字节 ENUM(“one”，“two”，“three”)  最多可以有65535成员。一次只能有一个值
+SET  集合 1，2,3,4,8字节----最多有64个成员 。 一次可以用多个集合的值，中间用“，”分割
+固定值，性别，星期，用enum。要用多个值用set
+
+日期：
+DATE--------YYYY-MM-DD
+TIME--------hh：mm：ss
+DATETIME----YYY-MM-DD hh：mm：ss
+TIMESTAMP---YYYMMDDhhmmss
+YEAR--------YYYY
+最好用整数保存时间。用时间戳！用int保存！
+
+-----------------------------------------------------------
+数据字段属性
+
+1.unsigned （设置无符号，无负数） 可以让空间增加一倍。 只能用在数值型字段
+create table t1(id int unsigned)不能插入负值
+
+2.zerofill  只能用在数值型字段   该字段自动应用unsigned 前导0：不足位数用0补齐
+create table t1(num int(5)zerofill,price float(7,2) zerofill)
+
+3.AUTO_INCREMENT
+只能是整数，数据没增加一条就会自动增1，字段的值是不允许重复。
+永远从已经插入过的 ！最大值！增加，即使删除也一样
+每个表最好有一个ID字段，设置为自动增长的auto_increment
+
+4.NULL 和NOT NULL
+默认是空  建议在创建表时，每个字段都不要插入NULL
+create table t2(id int not null,name varchar(30) not null)
+
+5.default
+create table users(id int unsigned not null auto_increment primary key,name varcchar(30) not null defualt ''unique
+                   height double(10,2) not null default 0.00,age int not null default0,sex char(4) not null default '男’）；
+
+----------------------------------------------------------                   
+ 
+创建索引
+
+1.主键索引primary key
+   最常用，主要作用是确定数据库表里一条特定数据记录的位置，一个表只能有一个主键。
+2.唯一索引 unique
+   和主键一样，都可以防止创建重复的值，每个表可以有多个唯一索引。
+   
+3.常规索引：可得到最佳性能提升！
+  最重要的技术，提升数据库的性能。
+  数据库优化首先这个！
+  比如，图书馆找本书：索引顺序  5层 软件  python  《pyhon action》
+  可以提高查找速度，但是会减慢数据列上插入，删除，修改的速度。比如新书上架下架等就麻烦了。
+  所以，不用把每个字段都创建索引。
+  所以，索引表创建一个，不是的一个，然后关联。
+  需要作为条件搜索的，条件分组的，条件排序的。可设置索引。比如where, order by ,group by,后面的！
+4.全文索引
+
+数据类型及存储位置
+MYSQL 可以针对不同的存储引擎需求可以选择最优的存储引擎
+show engines；只学MYISAM(默认)和InnoDB
+create table ()type/engine =InnoDB;
+MYISAM:读取速度快，缺点：有一些功能不支持
+InnoDB：空间占用较多，读取速度不如MYISAM快，支持一些MYISAM所不支持的功能，有更高的安全性，多个用户同时修改数据。IO效率高，性能好
+               MYISAM    InnoDB：InnoDB表必须制定主键，建议使用自增数字
+事务处理     不支持     支持
+数据行锁定   不支持     支持
+外键约束     不支持     支持
+表空间占用       小      大
+全文索引       支持     不支持
+
+MYSQL 字符集
+UTF-8  1-4个字节 强烈推荐，被广泛使用。
+show character set;查看MYSQL支持的字符集
+数据库中UTF-8是utf8
+
+修改表  ? alter table;
+Alter table t1 add name varchar(30) not null ;
+alter table t1 add age int unsigned not null default "0" first;
+alter table t1 add sex varchar(10) after name;
+alter table modify sex char(3); modify 改类型
+alter table change name username varchar(30) ;change能改列名字和类型
+alter table t1 rename as users;改表名
+alter table users drop age;
+drop table users;
+show tables;
+
+--------------------------------------------------------------------------------
+SQL语句
+创建表，然后“增删改查”
+
+create table cats(
+	id int not null auto_increment,
+	pid int not null default "0",
+	name varchar(60) not null default "",
+	desn text not null default "",
+	primary key(id),
+	index name(name,pid)
+);
+
+insert into cats values(null,"1","java","this is java");values建议都要以字符形式使用
+insert into prodaucts(cid,name,price,num,desn,ptime) values (1,"java","33","19","good","4322456667"),(2,"java","33","29","good","452456667")....);
+update 表名 set 字段=“值”,字段2=“”【条件】条件是确定要更改的记录，可以通过条件指定一条也可指定多条
+update cats set pid="3" ，name=“php2”where id>8;
+delete from 表名 【条件】 不给条件，整个表都被删除。truncate 表名；删除表效率更高
+delete from cats where id >8;
+select 最复杂
+
+SELECT [all | distinct]
+       (* | table.*| [table.]field1[as alias1],[tabale.]field2[as alias2][...])
+from 表名1,表名2
+[where]  可以在select  update delete 中
+[group by]
+[having]
+[limit]
+
+运行顺序：Join--From--Where--Group by--Having--select--order by--limit
+select price,name from product; 多表查询的时候，要product.price,product.name
+select price (as) bookprice ,name (as) bookname from product;多表查询的时候一般用别名。表也可以起别名
+select distinct price  from product;避免重复，distinct针对整个查询列表，取消重复数据。
+select name,price,price* dcprice from products where id>4 &&（and）id<8;
+
+
+空值不能用=，desn=null，是错的。要用desn is null 或 is not null；最好不用空值。
+<=>和=作用一样，但可以用于NULL比较desn <=> nul
+
+update products set num=77 where id in (5,10,16,20);
+
+like ,not like，regexp rlike 模糊查询
+   下划线_(任意一个字符)  %（0个或多个任意字符）
+select * from products where name like "java___";
+select * from products where name like "%java%";
+select pid,price from cats,products;选的字段两个表都不重复
+select c.name cname,p.name pname,p.price pprice from cats c,products p where c.id=p.cid and c.id=8;多表查询，字段和表最好都取别名,同一个表可设多个别名
+
+嵌套查询--子查询
+select * from products where cid in(select id from cats where name like "j%");
+排序
+select * from products where id>5 order by price desc;
+查询限制
+select * from products where id <10 order by id desc limit 5;
+
+MYSQL子查询效率通常比较低，能用（不带子查询的）join，尽量使用join。
+
+统计描述
+count() sum() avg() max() min()
+select cid,count(*),price ,sum(price),avg(price) from products group by cid having avg(price)>50;
+
+MYSQL内置函数：用在select语句，及子句 where order by having.     update delete少用
+
+一、字符串函数,最常用
+    
+二、数值函数
+三、日期函数
+
+
+字符串函数:
+select concat(name,"`s age is ",age) form users;
+insert(str,x,y,insert);  将字符串x位置开始，y个字符串长度替换为字符串insert
+select insert("abcdefg",2,3,"hello") --- ahelloefg
+
+lower(str) upper(str)
+select lower("HELLO")
+select * from users where upper(name)="AAA"
+
+left(str,x) right(str,x):分别返回最左边的x个字符，和最右边的x个字符，如果第二个参数为空，则什么也不返回
+select LEFT("abcdefg",3)----abc
+
+lpad(str,n,pad),rpad(str,n,pad):用字符串pad读str最左边和最右边进行填充知道长度为n个字符
+select name,lpad(name,10,"#"),比如name值为aaa，则返回#######aaa
+
+trim（str） ltrim（str）rtrim（str）：去掉字符串两边，左边，和右边字符串的空格
+select  trim("  abc  "),ltrim("  abc   ");返回"abc"，和"abc   "
+
+replace(str,a,b);用字符串b替换字符串str中的所有出现的字符串a
+select replace("abcdefgdddaaa","d","x")----"abcxefgxxxaaa"
+
+strcmp(s1,s2):如果s1比s2小，返回-1，如果s1比s2大则返回1，如果相等，则0
+select strcmp("a","b"),strcmp("a","a")----"-1" ,"0"
+
+substring(str,x,y) :返回字符串中的第x位置起y个字符串长度的字符串
+select substring("abcdefg",2,3)---bcd
+
+数值函数:
+
+abs(x):返回x的绝对值
+ceil(x):返回大于x的最小整数  2.1,2.5,2.8----3
+floor(x):返回小于x的最大整数 2.1,2.5,2.8----2
+mod(x,y):返回x/y的模  10/4----2
+rand（）：返回一个0-1之间
+ceil(rand()*100)----去0-100之间的随机数
+round(x,y):返回参数x的四舍五入的有y位小数的值  round(1.489,2)---1.49
+truncate(x,y):返回数值x截断为y为小数的结果  truncate(1.235,2)---1.23
+
+日期函数：
+
+select curdate();返回当前日期
+curtime()时间
+now()日期和时间
+unix_timestamp（now（））；时间戳
+from_unixtime
+select hour(curtime()):取出小时
+select monthname(now()):--setember
+select data_format(now(),"%Y-%m-%d %H:%i:%s");----2016-09-19 20:45:55
+
+流程控制函数
+
+if(value,t f)
+select id,salary,if(salary>3000,"hight","low") from salary;
+
+ifnull(value1,value2)
+select id,salary,ifnull(salary,0) from salary;可用来替换空值
+
+case when[value1] then[result1]...else[default]end  
+select case when salary<3000 then "low" else "high" end from salary;
+
+其他函数
+
+database()  \s   当前数据库库名
+user()           select user();
+inet_aton(ip)
+inet_ntoa
+password() 对mysql用户加密
+md5() 对应用程序用户加密
+
+备注： 用户登录MySQL后，对数据库操作的命令基本都以”;” 或 “g”结尾。
+
+一. MySQL服务操作：
+
+启动MySQL服务：
+
+net start mysql
+
+停止MySQL服务：
+
+net stop mysql
+
+进入MySQL数据库：
+
+mysql -h 主机地址 -u用户名 -p用户密码
+
+退出MySQL操作：
+
+quit;
+
+刷新数据库：
+
+flush privileges;
+
+创建数据库用户：
+
+一次可以创建多个数据库用户，如：
+
+CREATE USER 用户1 identified BY “密码1” , 用户2 IDENTIFIED BY “密码2”;
+或者：
+grant select on 数据库.* to 用户名@登录主机 identified by “密码”;
+
+更改MySQL用户密码：
+
+mysqladmin -u用户名 -p旧密码 password 新密码
+或者：
+update user set password=password(“新密码”) where user=”用户名”;
+
+用户的权限控制：
+
+库，表级的权限控制 : 将某个库中的某个表的控制权赋予某个用户：
+
+Grant all ON db_name.table_name TO user_name [ indentified by “password” ];
+
+设置用户登录IP限制：
+
+grant all privileges on 数据库.* to 用户名@主机地址 identified by “密码” with grant option;
+
+例如：
+
+// 设置root用户可在本地访问所有的数据库：
+grant all privileges on *.* to root@localhost identified by “1234567890” with grant option;
+// 设置root用户可在任何IP地址访问mydatabase数据库：
+grant all privileges on mydatabase.* to root@”%” identified by “1234567890” with grant option;
+
+删除用户登录IP授权：
+
+revoke all privileges on 数据库.* from 用户名@”%”;
+或者：
+delete from user where user=”root” and host=”%”;
+
+删除SQL用户：
+
+delete from user where User=”用户名” and Host=”主机地址”;
+
+二. 数据库操作：
+
+列出数据库：
+
+show databases;
+
+使用名为database_name的数据库：
+
+use database_name;
+
+创建名为database_name的数据库：
+
+create database database_name;
+
+删除一个名为database_name的数据库：
+
+drop database database_name;
+
+三. 表操作：
+
+列出所有表：
+
+show tables;
+
+创建一个名为table_name的新表：
+
+create table table_name;
+或者：
+create table table_name (字段1 数据类型 , 字段2 数据类型);
+
+删除表table_name：
+
+drop table table_name;
+
+显示表table_name的数据结构：
+
+describe table_name;
+或：
+show columns from table_name;
+
+向表table_name中添加数据：
+
+Insert into table_name [(字段1 , 字段2 , ….)] values (值1 , 值2 , …..);
+
+更新某一个字段的数据：
+
+Update table_name set 字段名=”新值” [, 字段2 =”新值” , …..][where id=id_num] [order by 字段 顺序];
+
+例 : update mytable set username=”lisi” where id=1; 。
+
+将表table_name中的记录清空：
+
+delete from table_name; // 删除整个表中的信息
+delete from table_name where 条件语句 ; // 删除表中指定条件的语句
+
+显示表table_name的记录：
+
+select * from table_name;
+
+修改表名：
+
+alter table table_name rename to new_table_name;
+
+四. 修改表结构：
+
+把某个字段设为主键：
+
+alter table table_name add primary key (col_name);
+
+删除主键的定义：
+
+alter table table_name drop primary key (col_name);
+
+增加字段，并设置字段类型：
+
+alter table table_name add col_name varchar(20);
+
+删除字段：
+
+alter table table_name drop col_name;
+
+修改字段属性：
+
+alter table table_name modify col_name varchar(40) not null;
+
+修改字段名：
+
+alter table table_name change old_col_name new_col_name varchar(40); // 必须为当前字段指定数据类型等属性，否则不能修改
+
+用已存在的表来建新表，但不包含旧表的数据：
+
+create table new_table_name like old_table_name;
+
+增加主键，外键，约束，索引等：
+
+约束（主键： Primary key 、唯一性： Unique 、非空： Not Null ）；
+自动增张： auto_increment ；
+外键： Foreign key 。 与reference table_name(col_name列名)配合使用，建表时单独使用。
+删除多个表中有关联的数据：设置 foreign key 为 set null 。
+
+五. 数据的备份与恢复：
+
+在当前的数据库上执行外部的SQL脚本：
+
+mysql < extend.sql
+
+指定数据库执行外部SQL脚本：
+
+mysql [表名] < extend.sql
+
+数据传入：
+
+load data local infile “[文件名]” into table [表名];
+
+备份数据库：
+
+mysqldump -h 主机地址 -u 用户名 -p 数据库名 > dbname_backup.sql
+
+恢复数据库：
+
+mysqladmin -h 主机地址 -u 用户名 -p create 新数据库名
+mysqldump -h 主机地址 -u 用户名 -p 新数据库名 < dbname_backup.sql
+
+卸出建表指令：
+
+mysqladmin -u 用户名 -p -d 数据库名 > a.sql
+
+卸出插入数据的sql命令，不包含建表命令：
+
+mysqladmin -u 用户名 -p -t 数据库名 > a.sql
+
+卸出数据，不包含sql命令：
+
+mysqldump -T 卸出数据的目录 phptest 指定卸出的数据表
+
+其中，只有指定了 -T 参数才可以卸出纯文本文件。如果不指定卸出的数据表，则将卸出整个数据库的数据。每个表会生成两个文件，一个为.sql文件，包含建表执行；另一个为.txt文件，只包含数据，且没有sql指令。
+
+六. 查看数据库信息：
+
+查看数据库版本号：
+
+select version();
+
+查看当前的user：
+
+select user();
+
+查看当前操作的数据库名：
+
+mysql> select database();

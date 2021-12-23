@@ -1,0 +1,6 @@
+https://www.runoob.com/redis/redis-install.html
+
+.\redis-server.exe redis.windows.conf
+.\redis-cli.exe -h 127.0.0.1 -p 6379
+set myKey abc
+get myKey

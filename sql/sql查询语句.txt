@@ -1,0 +1,90 @@
+语句执行顺序：from join on where group by avg,sum.... having select distinct order by limit 
+sqladmin -u用户名 -p旧密码 password 新密码 
+导出sql：mysql -u username -p -D dbname < filename.sql
+
+create database <数据库名>；
+查看当前使用的数据库： select database();
+建表：
+create table MyClass(id int(4) not null primary key auto_increment,
+name char(20) not null,
+sex int(4) not null default '0',
+degree double(16,2));
+
+插入数据：insert into <表名> [( <字段名1>[,..<字段名n > ])] values ( 值1 )[, ( 值n )]
+查看表 MyClass 中前2行数据：select * from MyClass order by id limit 0,2;
+
+删除：delete from 表名 where 表达式
+
+清空表：delete from MYTABLE;
+
+修改：update 表名 set 字段=新值,… where 条件
+
+在表中增加字段：alter table 表名 add字段 类型 其他;
+alter table dbname add column userid int(11) not null primary key auto_increment;
+
+更改表名：rename table 原表名 to 新表名;
+
+mysql数据库的授权：grant select,insert,delete,create,drop
+　　 on *.* (或test.*/user.*/. 数据库)
+　　 to 用户名@localhost
+　　 identified by '密码'；
+
+SELECT device_id,age,university from user_profile where university like '%北京%'
+
+select count(gender) as male_num,round(avg(gpa),1) as avg_gpa from user_profile where gender='male'
+
+select university,avg(question_cnt) as avg_question_cnt ,avg(answer_cnt) as avg_answer_cnt
+from user_profile group by university having avg_question_cnt<5 or avg_answer_cnt<20;
+
+SELECT university,difficult_level,count(qp.question_id) /count(distinct qp.device_id) avg_answer_cnt
+FROM question_practice_detail qp 
+    left join user_profile u on qp.device_id=u.device_id
+    left join question_detail qd on qp.question_id=qd.question_id  
+group by university,difficult_level
+
+select u.university,q2.difficult_level,(count(u.answer_cnt)/count(distinct q1.device_id)) as avg_answer_cnt
+from user_profile as u 
+inner join question_practice_detail as q1 on u.device_id=q1.device_id
+inner join question_detail as q2 on q1.question_id=q2.question_id
+where university='山东大学' group by q2.difficult_level
+
+select device_id,gender,age,gpa from user_profile where university='山东大学' 
+union ALL
+select device_id,gender,age,gpa from user_profile where gender='male'
+
+SELECT if(age>=25,'25岁及以上','25岁以下') as age_cut,count(device_id) as number
+from user_profile group by age_cut
+
+select device_id,gender,
+case 
+
+
+when age>=25 then '25岁及以上'
+when age<25 and age>=20 then '20-24岁'
+when age<20 then '20岁以下'
+else '其他'  end as age_cut from user_profile 
+
+select  day(date) as day,count(question_id) as question_cnt from question_practice_detail  WHERE
+month(date) =08 group by date
+
+select substring(profile,15) as gender,count(device_id) as number from user_submit group by gender
+
+SELECT device_id,university,gpa FROM user_profile u
+where gpa =(SELECT min(gpa) FROM user_profile where university=u.university) order by university
+
+select u.device_id,u.university ,
+if(sum( month(q.date)='08')>0,sum( month(q.date)='08'),0) as question_cnt ,
+if(sum(q.result='right')>0,sum( month(q.date)='08'),0) as right_question_cnt 
+from user_profile u left join question_practice_detail qon u.device_id=q.device_id 
+where university="复旦大学"  group by device_id
+
+SELECT difficult_level,
+sum(if(result = 'right',1,0)) / count(1) correct_rate
+from question_practice_detail a1 
+left join user_profile a2
+on a1.device_id = a2.device_id
+left join question_detail a3
+on a1.question_id = a3.question_id
+where university = '浙江大学'
+group by difficult_level
+order by correct_rate ASC
