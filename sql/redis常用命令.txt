@@ -1,8 +1,8 @@
 Redis数据库首先是一个数据库，其次它是一个内存数据库，基本所有数据都保存在内存中，所以读写速度非常快，会定时以追加或快照的方式刷新到磁盘中。
 Redis操作：想让其它机器访问本机的redis服务器，需要修改redis.conf的ip地址为本机的网卡ip，如果有多个网卡，可以绑定多个ip。
 安装：
-.\redis-server.exe redis.windows.conf 
-.\redis-cli.exe -h 127.0.0.1 -p 6379
+.\redis-server.exe redis.windows.conf  #启动redis
+.\redis-cli.exe -h 127.0.0.1 -p 6379   #打开另外一个cmd，测试使用
 set myKey abc
 get myKey
 

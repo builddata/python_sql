@@ -19,10 +19,12 @@ class SQL_EXE():
         return res
 
     def exeCUD(self,sql=None):   #删除、更新、新增操作
-    
+    #with 语句适用于对资源进行访问的场合，确保不管使用过程中是否发生异常都会执行必要的“清理”操作，
+    #释放资源，比如文件使用后自动关闭、线程中锁的自动获取和释放等
         try:
             with self.cursor as cursor:
                 affected_rows = cursor.execute(sql)
+
             if affected_rows == 1:
                 print('修改成功!!!')
             self.conn.commit()
@@ -47,4 +49,7 @@ if __name__=='__main__':
     # demo.exeCUD(sql=f"delete from {table} where age>40")     #删除数据
     # demo.exeCUD(sql=f"drop table {table}")       #删除表
     demo.exeClose()
-    
+    #批量插入数据
+     #sql='insert  userinfo(id,name,passwd) values(%s,%s,%s)'
+     #params=[(2,"root","2345"),(3,"test","3456")]
+     #reCount = cur.executemany(sql,params)

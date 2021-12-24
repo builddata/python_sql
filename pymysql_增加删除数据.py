@@ -1,32 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 pymysql_增加删除数据
-ssh-keygen -t rsa -C "youremail@example.com" 生成新的rsa密钥
-git:https://blog.csdn.net/qq_36667170/article/details/79094257
-https://blog.csdn.net/jojowei/article/details/89008657
 
-git init
-git add .(提交所有文件)
-git commit -m “new chaged at 2021-12-21”
-git add setting.py （更新所有文件）git add * （更新所有文件）
-git commit -m “更新”   
-git push
-
-git 速度慢：
-# Github
-# Github
-140.82.113.3 github.com
-199.232.69.194 github.global.ssl.fastly.net
-185.199.108.153 assets-cdn.github.com
-185.199.109.153 assets-cdn.github.com
-185.199.110.153 assets-cdn.github.com
-185.199.111.153 assets-cdn.github.com
-cmd：ipconfig/flushdns
-
-sqladmin -u用户名 -p旧密码 password 新密码 
-导出sql：mysql -u username -p -D dbname < filename.sql
-
-create database <数据库名>；
 查看当前使用的数据库： select database();
 建表：
 create table MyClass(id int(4) not null primary key auto_increment,

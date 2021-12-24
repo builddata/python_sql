@@ -10,6 +10,7 @@ name char(20) not null,
 sex int(4) not null default '0',
 degree double(16,2));
 
+
 插入数据：insert into <表名> [( <字段名1>[,..<字段名n > ])] values ( 值1 )[, ( 值n )]
 查看表 MyClass 中前2行数据：select * from MyClass order by id limit 0,2;
 
@@ -28,6 +29,17 @@ mysql数据库的授权：grant select,insert,delete,create,drop
 　　 on *.* (或test.*/user.*/. 数据库)
 　　 to 用户名@localhost
 　　 identified by '密码'；
+
+create table if not exists user_info_vip (
+    id int(11) primary key auto_increment comment '自增ID',
+    uid int(11) unique not null comment '用户ID',
+    nick_name varchar(64) comment '昵称',
+    achievement int(11) default 0 comment '成就值',
+    level int(11) comment '用户等级',
+    job varchar(32) comment '职业方向',
+    register_time datetime default current_timestamp comment '注册时间'
+    );
+--------------------------------------------------------------------------------------------------------
 
 SELECT device_id,age,university from user_profile where university like '%北京%'
 
@@ -88,3 +100,56 @@ on a1.question_id = a3.question_id
 where university = '浙江大学'
 group by difficult_level
 order by correct_rate ASC
+
+SELECT tag,difficulty,ROUND((SUM(score)-max(score)-MIN(score))/(COUNT(score)-2),1) AS clip_avg_socre
+FROM exam_record as er
+join examination_info AS ei
+WHERE er.exam_id=ei.exam_id and difficulty='hard' and tag='SQL'
+
+select date_format(submit_time,'%Y%m') as month2,round(count(submit_time)/count(distinct uid),2),count(distinct uid)
+from exam_record where submit_time is not null
+and year(submit_time)='2021' group by month(submit_time)
+---------------------------------
+SELECT DATE_FORMAT(submit_time,'%Y%m') as submit_month,COUNT(submit_time) month_q_cnt,
+ROUND(COUNT(submit_time)/MAX(DAY(last_day(submit_time))),3) avg_day_q_cnt
+FROM practice_record
+WHERE year(submit_time) = '2021'
+GROUP BY DATE_FORMAT(submit_time,'%Y%m')
+
+UNION ALL
+SELECT '2021汇总',COUNT(*),
+ROUND(COUNT(*)/31,3)
+FROM practice_record
+WHERE submit_time IS NOT NULL
+and year(submit_time) = '2021'
+
+ORDER BY submit_month
+---------------------------------
+SELECT tag,count(uid) as tag_cnt FROM 
+exam_record as c join examination_info as d
+ON c.exam_id=d.exam_id
+WHERE c.uid in (SELECT uid FROM
+                 exam_record
+                WHERE submit_time IS NOT NULL
+                 GROUP BY uid
+                 HAVING COUNT(exam_id)/count(distinct DATE_FORMAT(start_time,'%Y%m'))>=3)
+GROUP BY tag
+ORDER BY tag_cnt DESC
+--------------------------------------------------------------------插入，修改，删除
+
+insert into exam_record_before_2021
+select null,uid,exam_id,start_time,submit_time,score from exam_record
+where year(submit_time)<2021;
+
+replace into examination_info
+values(NULL, 9003,'SQL','hard',90,'2021-01-01 00:00:00')
+
+update exam_record set score=0 ,submit_time='2099-01-01 00:00:00' where submit_time is NULL and start_time
+<'2021-09-01 00:00:00'
+
+alter table user_info ADD school varchar(15) after level;#增加一列
+alter table user_info CHANGE job profession varchar(10);#改列名
+alter table user_info modify achievement int(11) default 0;#改默认值
+delete from exam_record where score<60 and timestampdiff(minute,start_time,submit_time)<5
+
+truncate exam_record #删除数据，不删表结构
